@@ -394,6 +394,10 @@ struct ncclComm {
   // buffer registration cache
   struct ncclRegCache regCache;
   uint64_t endMagic;
+
+#ifdef DELL_COLLECTOR
+  class dell_collector_c *dell_collector;
+#endif
 };
 
 enum ncclLaunchMode {
