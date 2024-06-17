@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "param.h"
+#include "dell/prometheus.h"
 
 #define STR2(v) #v
 #define STR(v) STR2(v)
@@ -245,6 +246,8 @@ static ncclResult_t commFree(ncclComm_t comm) {
 
   NCCLCHECK(ncclRegCleanup(comm));
 
+  prometheus_shm_close(comm);
+
   commPoison(comm); // poison comm before free to avoid comm reuse.
   free(comm);
 
@@ -389,6 +392,9 @@ static ncclResult_t commAlloc(struct ncclComm* comm, struct ncclComm* parent, in
   ncclIntruQueueMpscConstruct(&comm->callbackQueue);
 
   comm->regCache.pageSize = sysconf(_SC_PAGESIZE);
+
+  prometheus_shm_open(comm);
+
   return ncclSuccess;
 }
 

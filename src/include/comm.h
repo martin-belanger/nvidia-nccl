@@ -394,6 +394,10 @@ struct ncclComm {
   // buffer registration cache
   struct ncclRegCache regCache;
   uint64_t endMagic;
+
+#ifdef DELL_PROMETHEUS
+  struct prometheus *prometheus;
+#endif
 };
 
 enum ncclLaunchMode {

@@ -12,6 +12,7 @@
 #include "channel.h"
 #include "cudawrap.h"
 #include "transport.h"
+#include "dell/prometheus.h"
 #include <cassert>
 #include <cstring> // std::memcpy
 #include <cinttypes> // PRIx64
@@ -315,6 +316,8 @@ static ncclResult_t addCollnetCollToPlan(
     TRACE(NCCL_COLL, "collnetColl enqueue coll %s(%s, %s, %s, %s), nChannels %d, count %ld (nbytes %ld), usableChannel %d, chunkCount %d, funcIndex %d, nThreads %d", collInfo->opName, ncclOpToString(collInfo->op), ncclDatatypeToString(collInfo->datatype), ncclAlgoToString(collInfo->algorithm), ncclProtoToString(collInfo->protocol), collInfo->nChannels, collInfo->count, collInfo->workBytes, usableChannels, collInfo->chunkCount, collInfo->workFuncIndex, collInfo->nThreads);
   }
 
+  prometheus_collect(comm, collInfo);
+
 exit:
   return ret;
 fail:
@@ -422,6 +425,8 @@ static ncclResult_t addTunedCollToPlan(
     TRACE(NCCL_COLL, "tunedColl enqueue coll %s(%s, %s, %s, %s), nChannels %d, count %ld (nbytes %ld), usableChannel %d, chunkCount %d, lastChunkCount %ld, funcIndex %d, nThreads %d", collInfo->opName, ncclOpToString(collInfo->op), ncclDatatypeToString(collInfo->datatype), ncclAlgoToString(collInfo->algorithm), ncclProtoToString(collInfo->protocol), rnChannels, collInfo->count, collInfo->workBytes, usableChannels, collInfo->chunkCount, lastChunkCount, collInfo->workFuncIndex, collInfo->nThreads);
   }
 
+  prometheus_collect(comm, collInfo);
+
 exit:
   return ret;
 fail:
@@ -497,6 +502,8 @@ static ncclResult_t addCBDCollToPlan(
   if (comm->rank == 0) {
     TRACE(NCCL_COLL, "CBDColl enqueue coll %s(%s, %s, %s, %s), nChannels %d, count %ld (nbytes %ld), usableChannel %d, maxBytesPerChannel %ld, chunkCount %d, lastChunkCount %ld, funcIndex %d, nThreads %d", collInfo->opName, ncclOpToString(collInfo->op), ncclDatatypeToString(collInfo->datatype), ncclAlgoToString(collInfo->algorithm), ncclProtoToString(collInfo->protocol), rnChannel, collInfo->count, collInfo->workBytes, usableChannels, plan->maxBytesPerChannel, collInfo->chunkCount, lastChunkCount, collInfo->workFuncIndex, collInfo->nThreads);
   }
+
+  prometheus_collect(comm, collInfo);
 
 exit:
   return ret;

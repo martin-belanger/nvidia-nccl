@@ -119,3 +119,7 @@ endif
 ifneq ($(RDMA_CORE), 0)
 CXXFLAGS += -DNCCL_BUILD_RDMA_CORE=1
 endif
+
+ifdef DELL_NCCL
+CXXFLAGS += -DDELL_PROMETHEUS
+endif

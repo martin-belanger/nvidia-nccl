@@ -15,6 +15,10 @@ LIBSRCFILES := \
 	$(wildcard misc/*.cc) \
 	$(wildcard transport/*.cc)
 
+ifdef DELL_NCCL
+LIBSRCFILES += dell/prometheus.cc
+endif
+
 ##### lib files
 LIBNAME     := libnccl.so
 STATICLIBNAME := libnccl_static.a
