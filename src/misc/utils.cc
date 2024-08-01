@@ -313,6 +313,8 @@ const char* ncclDatatypeToString(ncclDataType_t type) {
   switch (type) {
     case ncclInt8: // ncclChar
       return "ncclInt8";
+    case ncclUint8:
+      return "ncclUint8";
     case ncclInt32: // ncclInt
       return "ncclInt32";
     case ncclUint32:

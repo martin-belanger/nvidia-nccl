@@ -17,6 +17,7 @@
 #include "debug.h"
 #include "nccl_common.h"
 #include "dell/collector.h"
+#include "utils.h"
 
 PRE_AND_POST_ENUM_INCREMENT(ncclFunc_t)
 PRE_AND_POST_ENUM_INCREMENT(ncclRedOp_t)
@@ -37,56 +38,20 @@ static const char* func_name(ncclFunc_t func) {
 	return "unknown";
 }
 
-static const char* op_name(ncclRedOp_t op) {
-	switch (op) {
-	case ncclSum:  return "Sum";
-	case ncclProd: return "Prod";
-	case ncclMax:  return "Max";
-	case ncclMin:  return "Min";
-	case ncclAvg:  return "Avg";
-	default:;
-	}
-	return "unknown";
+static inline const char* op_name(ncclRedOp_t op) {
+	return ncclOpToString(op);
 }
 
-static const char* type_name(ncclDataType_t type) {
-	switch (type) {
-	case ncclInt8:     return "int8";
-	case ncclUint8:    return "uint8";
-	case ncclInt32:    return "int32";
-	case ncclUint32:   return "uint32";
-	case ncclInt64:    return "int64";
-	case ncclUint64:   return "uint64";
-	case ncclFloat16:  return "float16";
-	case ncclFloat32:  return "float32";
-	case ncclFloat64:  return "float64";
-	case ncclBfloat16: return "bfloat16";
-	default:;
-	}
-	return "unknown";
+static inline const char* type_name(ncclDataType_t type) {
+	return ncclDatatypeToString(type);
 }
 
-static const char* proto_name(int proto) {
-	switch (proto) {
-	case NCCL_PROTO_LL:     return "LL";
-	case NCCL_PROTO_LL128:  return "LL128";
-	case NCCL_PROTO_SIMPLE: return "Simple";
-	default:;
-	}
-	return "unknown";
+static inline const char* proto_name(int proto) {
+	return ncclProtoToString(proto);
 }
 
-static const char* algo_name(int algo) {
-	switch (algo) {
-	case NCCL_ALGO_TREE:           return "Tree";
-	case NCCL_ALGO_RING:           return "Ring";
-	case NCCL_ALGO_COLLNET_DIRECT: return "CollNetDirect";
-	case NCCL_ALGO_COLLNET_CHAIN:  return "CollNetChain";
-	case NCCL_ALGO_NVLS:           return "Nvls";
-	case NCCL_ALGO_NVLS_TREE:      return "NvlsTree";
-	default:;
-	}
-	return "unknown";
+static inline const char* algo_name(int algo) {
+	return ncclAlgoToString(algo);
 }
 
 /**
@@ -108,42 +73,42 @@ static const char* algo_name(int algo) {
 static const char* pwr2_interval(unsigned int pwr2_index)
 {
 	switch (pwr2_index) {
-	case  0: return "[0,1K)"; /* pw2_counts[0] contains sizes from 0 to 1024 */
-	case  1: return "[1K,2K)";
-	case  2: return "[2K,4K)";
-	case  3: return "[4K,8K)";
-	case  4: return "[8K,16K)";
-	case  5: return "[16K,32K)";
-	case  6: return "[32K,64K)";
-	case  7: return "[64K,128K)";
-	case  8: return "[128K,256K)";
-	case  9: return "[256K,512K)";
-	case 10: return "[512K,1M)";
-	case 11: return "[1M,2M)";
-	case 12: return "[2M,4M)";
-	case 13: return "[4M,8M)";
-	case 14: return "[8M,16M)";
-	case 15: return "[16M,32M)";
-	case 16: return "[32M,64M)";
-	case 17: return "[64M,128M)";
-	case 18: return "[128M,256M)";
-	case 19: return "[256M,512M)";
-	case 20: return "[512M,1G)";
-	case 21: return "[1G,2G)";
-	case 22: return "[2G,4G)";
-	case 23: return "[4G,8G)";
-	case 24: return "[8G,16G)";
-	case 25: return "[16G,32G)";
-	case 26: return "[32G,64G)";
-	case 27: return "[64G,128G)";
-	case 28: return "[128G,256G)";
-	case 29: return "[256G,512G)";
-	case 30: return "[512G,1T)";
+	case  0: return "count_0_1K"; /* pw2_countscount_0] contains sizes from 0 to 1024 */
+	case  1: return "count_1K_2K";
+	case  2: return "count_2K_4K";
+	case  3: return "count_4K_8K";
+	case  4: return "count_8K_16K";
+	case  5: return "count_16K_32K";
+	case  6: return "count_32K_64K";
+	case  7: return "count_64K_128K";
+	case  8: return "count_128K_256K";
+	case  9: return "count_256K_512K";
+	case 10: return "count_512K_1M";
+	case 11: return "count_1M_2M";
+	case 12: return "count_2M_4M";
+	case 13: return "count_4M_8M";
+	case 14: return "count_8M_16M";
+	case 15: return "count_16M_32M";
+	case 16: return "count_32M_64M";
+	case 17: return "count_64M_128M";
+	case 18: return "count_128M_256M";
+	case 19: return "count_256M_512M";
+	case 20: return "count_512M_1G";
+	case 21: return "count_1G_2G";
+	case 22: return "count_2G_4G";
+	case 23: return "count_4G_8G";
+	case 24: return "count_8G_16G";
+	case 25: return "count_16G_32G";
+	case 26: return "count_32G_64G";
+	case 27: return "count_64G_128G";
+	case 28: return "count_128G_256G";
+	case 29: return "count_256G_512G";
+	case 30: return "count_512G_1T";
 	/* pw2_counts[31] contains sizes 1T and above */
 	default:;
 	}
 
-	return "[1T,Inf)";
+	return "count_1T_Inf";
 }
 
 /**
@@ -171,6 +136,8 @@ static unsigned int pwr2_index(unsigned long long count)
 	return (msb <= 9) ? 0 : std::min((int)(msb - 9), (MAX_NUM_BINS - 1));
 }
 
+NCCL_PARAM(WorkloadId, "WORKLOAD_ID", 0);
+
 /**
  * Build the string containing the name of the Shared Memory
  * device. This is the name that will appear under "/dev/shm/".
@@ -182,7 +149,9 @@ static unsigned int pwr2_index(unsigned long long count)
  */
 static std::string get_shmpath(int rank)
 {
-	return "/prometheus-nccl-" + std::to_string(rank);
+	unsigned int workloadId = ncclParamWorkloadId();
+
+	return "/prometheus-nccl-" + std::to_string(rank) + "-" + std::to_string(workloadId);
 }
 
 std::ostream& operator<<(std::ostream  & stream_r, const nccl_data_v1_c  * data_p)
@@ -193,11 +162,32 @@ std::ostream& operator<<(std::ostream  & stream_r, const nccl_data_v1_c  * data_
 
 	for (auto id = 0; id < MAX_NUM_BINS; id++) {
 		if (data_p->pw2_counts[id])
-			stream_r << "  bins[" << id << "]:\t" << data_p->pw2_counts[id] << '\t' << pwr2_interval(id) << '\n';
+			stream_r << "      bins[" << id << "]:\t" << data_p->pw2_counts[id] << '\t' << pwr2_interval(id) << '\n';
 	}
 
 	return stream_r;
 }
+
+class dell_collector_c {
+public:
+	dell_collector_c(int rank);
+	~dell_collector_c(void);
+
+	void collect(const struct ncclInfo *collInfo);
+	void print_counters();
+
+	const char *shm_data() { return (const char *)shmp_m; }
+	size_t shm_size() { return shms_m; }
+
+protected:
+	int           rank_m  = -1;
+	int           fd_m    = -1;       // Shared memory file descriptor
+	size_t        shms_m  = SHM_SIZE; // Shared memory size
+	nccl_stats_c *shmp_m  = (nccl_stats_c *)MAP_FAILED; // Pointer to shared memory (mmap)
+
+
+};
+
 
 /**
  * Pretty all the counters collected to stdout.
@@ -231,6 +221,8 @@ void dell_collector_c::print_counters()
 	}
 	std::cout << '\n';
 }
+
+
 
 dell_collector_c::dell_collector_c(int rank) : rank_m(rank)
 {
@@ -280,6 +272,7 @@ dell_collector_c::~dell_collector_c(void)
 	}
 
 	shm_unlink(get_shmpath(rank_m).c_str());
+
 }
 
 void dell_collector_c::collect(const struct ncclInfo *info_p)
@@ -320,3 +313,4 @@ void dell_collector_collect(struct ncclComm *comm, const struct ncclInfo *collIn
 	if (comm && comm->dell_collector && collInfo)
 		comm->dell_collector->collect(collInfo);
 }
+

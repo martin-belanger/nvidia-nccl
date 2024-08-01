@@ -566,6 +566,9 @@ static ncclResult_t addP2pToPlan(
   // with channel->nWork equal to one plus the work index this p2p settled in.
   proxyOp.opCount = uint64_t(plan->channels[channelId].nWork)<<1 | 1;
   NCCLCHECK(addProxyOpIfNeeded(comm, plan, &proxyOp));
+
+  dell_collector_collect(comm, &info);
+
   return ncclSuccess;
 }
 

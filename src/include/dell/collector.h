@@ -37,24 +37,6 @@ struct nccl_stats_c {
 
 std::ostream& operator<<(std::ostream  & stream_r, const nccl_data_v1_c  * stat_p);
 
-class dell_collector_c {
-public:
-	dell_collector_c(int rank);
-	~dell_collector_c(void);
-
-	void collect(const struct ncclInfo *collInfo);
-	void print_counters();
-
-	const char *shm_data() { return (const char *)shmp_m; }
-	size_t shm_size() { return shms_m; }
-
-protected:
-	int           rank_m  = -1;
-	int           fd_m    = -1;       // Shared memory file descriptor
-	size_t        shms_m  = SHM_SIZE; // Shared memory size
-	nccl_stats_c *shmp_m  = (nccl_stats_c *)MAP_FAILED; // Pointer to shared memory (mmap)
-};
-
 /**
  * Allocate and initialize Shared Memory for Prometheus metrics.
  * The Shared Memory is used to exchange metrics with a
