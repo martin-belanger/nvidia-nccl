@@ -277,10 +277,13 @@ void dell_collector_c::collect(const struct ncclInfo *info_p)
 
 /******************************************************************************/
 /******************************************************************************/
+static struct ncclComm *ugly_kludge_comm = nullptr; // Ugly kludge (see destructor code below)
+
 void dell_collector_start(struct ncclComm *comm) {
 	if (!comm || comm->dell_collector)
 		return;
 
+	ugly_kludge_comm = comm;
 	comm->dell_collector = new dell_collector_c(comm->rank);
 }
 
@@ -289,10 +292,24 @@ void dell_collector_stop(struct ncclComm *comm) {
 		comm->dell_collector->print_counters();
 		delete comm->dell_collector;
 		comm->dell_collector = nullptr;
+		ugly_kludge_comm = nullptr;
 	}
 }
 
 void dell_collector_collect(struct ncclComm *comm, const struct ncclInfo *collInfo) {
 	if (comm && comm->dell_collector && collInfo)
 		comm->dell_collector->collect(collInfo);
+}
+
+// Unfortunately, many programmers simply exit applications without a care in
+// the world for cleaning after themselves. One thing that we want to do after
+// execution of this code is print all the stats. Since we cannot rely on
+// users to call the cleanup code (i.e. commFree() which invokes
+// dell_collector_stop() above), we have to resort to this ugly kludge.
+void exit()__attribute__((destructor));
+void exit() {
+	if (ugly_kludge_comm) {
+		dell_collector_stop(ugly_kludge_comm);
+		ugly_kludge_comm = nullptr;
+	}
 }
