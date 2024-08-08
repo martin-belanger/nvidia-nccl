@@ -38,22 +38,6 @@ static const char* func_name(ncclFunc_t func) {
 	return "unknown";
 }
 
-static inline const char* op_name(ncclRedOp_t op) {
-	return ncclOpToString(op);
-}
-
-static inline const char* type_name(ncclDataType_t type) {
-	return ncclDatatypeToString(type);
-}
-
-static inline const char* proto_name(int proto) {
-	return ncclProtoToString(proto);
-}
-
-static inline const char* algo_name(int algo) {
-	return ncclAlgoToString(algo);
-}
-
 /**
  * Return the interval name corresponding to each counters of
  * pw2_counts[] (nccl_stats_c).
@@ -73,7 +57,7 @@ static inline const char* algo_name(int algo) {
 static const char* pwr2_interval(unsigned int pwr2_index)
 {
 	switch (pwr2_index) {
-	case  0: return "count_0_1K"; /* pw2_countscount_0] contains sizes from 0 to 1024 */
+	case  0: return "count_0_1K"; /* pw2_counts[0] contains sizes from 0 to 1024 */
 	case  1: return "count_1K_2K";
 	case  2: return "count_2K_4K";
 	case  3: return "count_4K_8K";
@@ -136,7 +120,7 @@ static unsigned int pwr2_index(unsigned long long count)
 	return (msb <= 9) ? 0 : std::min((int)(msb - 9), (MAX_NUM_BINS - 1));
 }
 
-NCCL_PARAM(WorkloadId, "WORKLOAD_ID", 0);
+NCCL_PARAM(WorkloadId, "WORKLOAD_ID", 0); // This defines the function ncclParamWorkloadId()
 
 /**
  * Build the string containing the name of the Shared Memory
@@ -168,6 +152,9 @@ std::ostream& operator<<(std::ostream  & stream_r, const nccl_data_v1_c  * data_
 	return stream_r;
 }
 
+
+/******************************************************************************/
+/******************************************************************************/
 class dell_collector_c {
 public:
 	dell_collector_c(int rank);
@@ -187,42 +174,6 @@ protected:
 
 
 };
-
-
-/**
- * Pretty all the counters collected to stdout.
- */
-void dell_collector_c::print_counters()
-{
-	std::cout << "=====================================================\n"
-		  << "NCCL stats for rank " << rank_m << '\n'
-		  << "=====================================================\n";
-
-	for (auto ifunc = (ncclFunc_t)0; ifunc < ncclNumFuncs; ifunc++) {
-		for (auto ioper = (ncclRedOp_t)0; ioper < ncclNumOps; ioper++) {
-			for (auto itype = (ncclDataType_t)0; itype < ncclNumTypes; itype++) {
-				for (auto ialgo = 0; ialgo < NCCL_NUM_ALGORITHMS; ialgo++) {
-					for (auto iprot = 0; iprot < NCCL_NUM_PROTOCOLS; iprot++) {
-						auto data_p = &shmp_m->data_m[ifunc][ioper][itype][ialgo][iprot];
-						if (!data_p->empty()) {
-							std::cout << "stats["
-								  << func_name(ifunc)  << "]["
-								  << op_name(ioper)    << "]["
-								  << type_name(itype)  << "]["
-								  << algo_name(ialgo)  << "]["
-								  << proto_name(iprot) << "]:\n"
-								  << data_p
-								  << '\n';
-						}
-					}
-				}
-			}
-		}
-	}
-	std::cout << '\n';
-}
-
-
 
 dell_collector_c::dell_collector_c(int rank) : rank_m(rank)
 {
@@ -272,7 +223,39 @@ dell_collector_c::~dell_collector_c(void)
 	}
 
 	shm_unlink(get_shmpath(rank_m).c_str());
+}
 
+/**
+ * Pretty all the counters collected to stdout.
+ */
+void dell_collector_c::print_counters()
+{
+	std::cout << "=====================================================\n"
+		  << "NCCL stats for rank " << rank_m << '\n'
+		  << "=====================================================\n";
+
+	for (auto ifunc = (ncclFunc_t)0; ifunc < ncclNumFuncs; ifunc++) {
+		for (auto ioper = (ncclRedOp_t)0; ioper < ncclNumOps; ioper++) {
+			for (auto itype = (ncclDataType_t)0; itype < ncclNumTypes; itype++) {
+				for (auto ialgo = 0; ialgo < NCCL_NUM_ALGORITHMS; ialgo++) {
+					for (auto iprot = 0; iprot < NCCL_NUM_PROTOCOLS; iprot++) {
+						auto data_p = &shmp_m->data_m[ifunc][ioper][itype][ialgo][iprot];
+						if (!data_p->empty()) {
+							std::cout << "stats["
+								  << func_name(ifunc)  << "]["
+								  << ncclOpToString(ioper)    << "]["
+								  << ncclDatatypeToString(itype)  << "]["
+								  << ncclAlgoToString(ialgo)  << "]["
+								  << ncclProtoToString(iprot) << "]:\n"
+								  << data_p
+								  << '\n';
+						}
+					}
+				}
+			}
+		}
+	}
+	std::cout << '\n';
 }
 
 void dell_collector_c::collect(const struct ncclInfo *info_p)
@@ -313,4 +296,3 @@ void dell_collector_collect(struct ncclComm *comm, const struct ncclInfo *collIn
 	if (comm && comm->dell_collector && collInfo)
 		comm->dell_collector->collect(collInfo);
 }
-
