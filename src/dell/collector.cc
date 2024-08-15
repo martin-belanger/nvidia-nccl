@@ -171,8 +171,6 @@ protected:
 	int           fd_m    = -1;       // Shared memory file descriptor
 	size_t        shms_m  = SHM_SIZE; // Shared memory size
 	nccl_stats_c *shmp_m  = (nccl_stats_c *)MAP_FAILED; // Pointer to shared memory (mmap)
-
-
 };
 
 dell_collector_c::dell_collector_c(int rank) : rank_m(rank)
@@ -230,9 +228,7 @@ dell_collector_c::~dell_collector_c(void)
  */
 void dell_collector_c::print_counters()
 {
-	std::cout << "=====================================================\n"
-		  << "NCCL stats for rank " << rank_m << '\n'
-		  << "=====================================================\n";
+	std::cout << "\n>>>>rank" << rank_m;
 
 	for (auto ifunc = (ncclFunc_t)0; ifunc < ncclNumFuncs; ifunc++) {
 		for (auto ioper = (ncclRedOp_t)0; ioper < ncclNumOps; ioper++) {
@@ -241,21 +237,21 @@ void dell_collector_c::print_counters()
 					for (auto iprot = 0; iprot < NCCL_NUM_PROTOCOLS; iprot++) {
 						auto data_p = &shmp_m->data_m[ifunc][ioper][itype][ialgo][iprot];
 						if (!data_p->empty()) {
-							std::cout << "stats["
+							std::cout << "\nstats["
 								  << func_name(ifunc)  << "]["
 								  << ncclOpToString(ioper)    << "]["
 								  << ncclDatatypeToString(itype)  << "]["
 								  << ncclAlgoToString(ialgo)  << "]["
 								  << ncclProtoToString(iprot) << "]:\n"
-								  << data_p
-								  << '\n';
+								  << data_p;
 						}
 					}
 				}
 			}
 		}
 	}
-	std::cout << '\n';
+
+	std::cout << "<<<<rank" << rank_m << '\n';
 }
 
 void dell_collector_c::collect(const struct ncclInfo *info_p)
