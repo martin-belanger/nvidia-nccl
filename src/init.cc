@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "param.h"
+#include "dell/collector.h"
 
 #define STR2(v) #v
 #define STR(v) STR2(v)
@@ -248,6 +249,7 @@ static ncclResult_t commFree(ncclComm_t comm) {
   NCCLCHECK(ncclRegCleanup(comm));
 
   INFO(NCCL_INIT,"comm %p rank %d nranks %d cudaDev %d busId %lx - %s COMPLETE", comm, comm->rank, comm->nRanks, comm->cudaDev, comm->busId, abort ? "Abort" : "Destroy");
+  dell_collector_stop(comm);
 
   commPoison(comm); // poison comm before free to avoid comm reuse.
   NCCLCHECK(ncclNetFinalize(comm));
@@ -395,6 +397,9 @@ static ncclResult_t commAlloc(struct ncclComm* comm, struct ncclComm* parent, in
   ncclIntruQueueMpscConstruct(&comm->callbackQueue);
 
   comm->regCache.pageSize = sysconf(_SC_PAGESIZE);
+
+  dell_collector_start(comm);
+
   return ncclSuccess;
 }
 
